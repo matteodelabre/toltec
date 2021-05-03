@@ -5,18 +5,18 @@
 pkgnames=(plato)
 pkgdesc="Document reader"
 url=https://github.com/LinusCDE/plato
-pkgver=0.9.13-2
-timestamp=2021-01-13T23:43Z
+pkgver=0.9.17-1
+timestamp=2021-05-02T14:39Z
 section="readers"
 maintainer="Linus K. <linus@cosmos-ink.net>"
 license=AGPL-3.0-or-later
-installdepends=(display)
+installdepends=(display jq)
 makedepends=(build:jq build:unzip build:wget)
 flags=(patch_rm2fb)
 
-image=rust:v1.4
-source=("https://github.com/LinusCDE/plato/archive/${pkgver%-*}-rm-release-7.zip")
-sha256sums=(17718d74066e5cbec043c98b52958a311eb793674751d6b7789b5baff2227f96)
+image=rust:v1.6
+source=("https://github.com/LinusCDE/plato/archive/${pkgver%-*}-rm-release-10.zip")
+sha256sums=(25aae17979d9e259d228617eb26a0cc89a6251968b8fc355b8cde36fd6b26773)
 
 build() {
     # Fall back to system-wide config
@@ -62,12 +62,56 @@ package() {
 configure() {
     local mediadir=/home/root/plato-media
 
-    # This directory should not be tracked by opkg
-    # so that its contents are kept after removing
     if [ ! -d $mediadir ]; then
+        # This directory should not be tracked by opkg
+        # so that its contents are kept after removing
         mkdir $mediadir
         echo ""
         echo "Place your media files for plato in '$mediadir'"
         echo ""
+    else
+        # Fix breaking change introduced in version 0.9.14
+        # https://github.com/baskerville/plato/releases/tag/0.9.14
+
+        local metadata_file=$mediadir/.metadata.json
+        local metadata_file_old=$mediadir/.metadata-old.json
+
+        local max_key_len
+        [ -e $metadata_file ] && max_key_len=$(jq --raw-output 'keys[]' < $metadata_file | wc -L) || max_key_len=-1
+        if [ "$max_key_len" -gt 16 ] && [ ! -e $metadata_file_old ]; then
+
+            echo ""
+            echo "In Plato 0.9.14 the metadata format for libraries changed."
+            echo "Found your outdated metadata file. Will update it automatically..."
+
+            # Routine is based on baskerville's migrate-hex_keys.py (from the release page)
+            # Rewritten in bash to only require jq rather than python.
+            mv $metadata_file $metadata_file_old
+            local change_cmds=""
+            local del_list=""
+            for key in $(jq --raw-output 'keys[]' < $metadata_file_old); do
+                hex_key=$(printf %016X "$key")
+                #echo "Key: $key --> $hex_key"
+
+                [ -z "$del_list" ] || del_list="${del_list}, "
+                [ -z "$change_cmds" ] || change_cmds="${change_cmds} | "
+                del_list="${del_list}.[\"${key}\"]"
+                change_cmds="${change_cmds}.[\"$hex_key\"] = .[\"$key\"]"
+            done
+
+            # Create updated json file
+            jq "$change_cmds | del($del_list)" < $metadata_file_old > $metadata_file
+            echo "Update complete. The old file was renamed to '.metadata-old.json'."
+            echo ""
+
+        elif [ "$max_key_len" -gt 16 ] && [ -e $metadata_file_old ] || [ ! -e $metadata_file ]; then
+            echo ""
+            echo "In Plato 0.9.14 the metadata format for libraries changed."
+            echo "MANUAL INTERVENTION REQUIRED\!\!\!"
+            echo "Please follow the following guide to update your library metadata manually:"
+            echo "https://github.com/baskerville/plato/releases/tag/0.9.14"
+            echo "Please LAUNCH plato ONLY AFTER this was done\!"
+            echo ""
+        fi
     fi
 }
