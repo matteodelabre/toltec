@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Copyright (c) 2021 The Toltec Contributors
+# SPDX-License-Identifier: MIT
+
+pkgnames=(libcurl-dev)
+pkgdesc="Client-side URL transfer library"
+url=https://curl.se/libcurl
+pkgver=7.75.0-1
+timestamp=2021-04-14T00:00:00Z
+section="devel"
+maintainer="TBD"
+license=MIT
+
+image=base:v1.5
+source=("https://curl.se/download/curl-${pkgver%-*}.tar.gz")
+sha256sums=(4d51346fe621624c3e4b9f86a8fd6f122a143820e17889f59c18f245d2d8e7a6)
+
+build() {
+    ./configure --prefix=/opt --host="$CHOST"
+    make
+    DESTDIR="$srcdir"/install make install
+}
+
+package() {
+    install -D -m 644 -t "$pkgdir"/opt/lib/ \
+        "$srcdir"/install/opt/lib/libcurl.a "$srcdir"/install/opt/lib/libcurl.la "$srcdir"/install/opt/lib/libcurl.so
+    install -D -m 644 -t "$pkgdir"/opt/lib/pkgconfig "$srcdir"/install/opt/lib/pkgconfig/libcurl.pc
+    install -D -m 644 -t "$pkgdir"/opt/share/aclocal/ "$srcdir"/install/opt/share/aclocal/libcurl.m4
+
+    install -D -m 755 -t "$pkgdir"/opt/bin/ "$srcdir"/install/opt/bin/curl-config
+
+    for file in "$srcdir"/install/opt/include/curl/*; do
+        install -D -m 644 -t "$pkgdir"/opt/include/curl "$file"
+    done
+}
