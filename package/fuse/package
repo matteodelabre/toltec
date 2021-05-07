@@ -14,28 +14,34 @@ license=GPL-2.0-only
 makedepends=(build:bc build:lzop build:git)
 flags=(nostrip)
 
+image=base:v2.1
+source=(fix-multiple-yylloc-definitions.patch)
+sha256sums=(SKIP)
+
 _kernelrepo=https://github.com/remarkable/linux
 _kernelrev=1774e2a6a091fdc081324e966d3db0aa9df75c0b
 _defconfig=arch/arm/configs/zero-gravitas_defconfig
 
-image=base:v2.1
-
-build() {
+prepare() {
+    cd "$srcdir"
     mkdir pkg
     git init linux
-    (
-        cd linux
-        git fetch --depth=1 "$_kernelrepo" "$_kernelrev"
-        git checkout -f "$_kernelrev"
-        make mrproper
-        touch .scmversion
-        cp "$_defconfig" .config
-        echo "CONFIG_FUSE_FS=m" >> .config
-        make olddefconfig
-        make fs/fuse/fuse.ko
-        make modules_prepare
-    )
+    cd linux
+    git fetch --depth=1 "$_kernelrepo" "$_kernelrev"
+    git checkout -f "$_kernelrev"
+    git apply "$srcdir"/fix-multiple-yylloc-definitions.patch
+}
 
+build() {
+    cd linux
+    make mrproper
+    touch .scmversion
+    cp "$_defconfig" .config
+    echo "CONFIG_FUSE_FS=m" >> .config
+    make olddefconfig
+    make fs/fuse/fuse.ko
+    make modules_prepare
+    cd -
     KERNELRELEASE=$(cat linux/include/config/kernel.release)
     export MOD_INSTALL_PATH="pkg/$KERNELRELEASE"
     install -D -m 644 linux/fs/fuse/fuse.ko \
