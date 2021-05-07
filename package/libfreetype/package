@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Copyright (c) 2021 The Toltec Contributors
+# SPDX-License-Identifier: MIT
+
+pkgnames=(libfreetype-dev)
+pkgdesc="Library to render fonts - development files"
+url=https://freetype.org
+pkgver=2.10.4-1
+timestamp=2020-10-20T00:00:00Z
+section="devel"
+maintainer="TBD"
+license=GPL-2.0
+makedepends=(build:automake build:libtool)
+
+image=base:v1.5
+source=("https://gitlab.freedesktop.org/freetype/freetype/-/archive/VER-2-10-4/freetype-VER-2-10-4.tar.gz")
+sha256sums=(4d47fca95debf8eebde5d27e93181f05b4758701ab5ce3e7b3c54b937e8f0962)
+
+build() {
+    bash autogen.sh
+    ./configure --enable-static --enable-shared --without-png --with-bzip2=no --with-zlib=yes --host=arm-linux-gnueabihf --host="$CHOST" --prefix=/opt
+    make
+    DESTDIR="$srcdir"/install make install
+}
+
+package() {
+    install -D -m 644 -t "$pkgdir"/opt/lib/ \
+        "$srcdir"/install/opt/lib/libfreetype.a "$srcdir"/install/opt/lib/libfreetype.la "$srcdir"/install/opt/lib/libfreetype.so
+    install -D -m 644 -t "$pkgdir"/opt/lib/pkgconfig/ "$srcdir"/install/opt/lib/pkgconfig/freetype2.pc
+
+    for file in "$srcdir"/install/opt/include/freetype2/*.h; do
+        install -D -m 644 -t "$pkgdir"/opt/include/freetype2 "$file"
+    done
+    for file in "$srcdir"/install/opt/include/freetype2/freetype/*.h; do
+        install -D -m 644 -t "$pkgdir"/opt/include/freetype2/freetype "$file"
+    done
+    for file in "$srcdir"/install/opt/include/freetype2/freetype/config/*.h; do
+        install -D -m 644 -t "$pkgdir"/opt/include/freetype2/freetype/config "$file"
+    done
+}
