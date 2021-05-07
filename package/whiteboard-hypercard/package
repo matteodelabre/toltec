@@ -6,13 +6,13 @@ archs=(rm1)
 pkgnames=(whiteboard-hypercard)
 pkgdesc="Real-time collaboration, drawing or whiteboarding"
 url=https://github.com/fenollp/reMarkable-tools
-pkgver=0.3.0-2
+pkgver=0.3.0-3
 timestamp=2020-09-23T18:01Z
 section="drawing"
 maintainer="Pierre Fenoll <pierrefenoll@gmail.com>"
 license=Apache-2.0
 
-image=rust:v1.1
+image=rust:v2.1
 source=(
     https://github.com/fenollp/reMarkable-tools/archive/v0.3.0.zip
     whiteboard-hypercard.draft

@@ -6,7 +6,7 @@ archs=(rm1 rm2)
 pkgnames=(fuse)
 pkgdesc="FUSE (Filesystem in Userspace) Kernel Module"
 url=https://github.com/libfuse/libfuse
-pkgver=1.0.0-1
+pkgver=1.0.0-2
 timestamp=2021-04-06T22:16Z
 section=utils
 maintainer="plan5 <30434574+plan5@users.noreply.github.com>"
@@ -18,7 +18,7 @@ _kernelrepo=https://github.com/remarkable/linux
 _kernelrev=1774e2a6a091fdc081324e966d3db0aa9df75c0b
 _defconfig=arch/arm/configs/zero-gravitas_defconfig
 
-image=base:v1.3.2
+image=base:v2.1
 
 build() {
     mkdir pkg
