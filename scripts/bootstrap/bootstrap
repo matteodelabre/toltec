@@ -35,7 +35,7 @@ get-branch() {
     local branch
     if [[ -f "$opkg_conf_path" ]]; then
         # Get the first (...) value (aka \1) of the pattern if matching
-        branch="$(sed -E 's|^src/gz\s+toltec\s+https://toltec-dev.org/([[:alnum:]]*).*$|\1|;t;d' "$opkg_conf_path" | head -n1)"
+        branch="$(sed -E 's|^src/gz\s+toltec-rmall\s+https://toltec-dev.org/([[:alnum:]]*).*$|\1|;t;d' "$opkg_conf_path" | head -n1)"
     fi
     echo "${branch:-stable}"
 }
@@ -257,7 +257,7 @@ toltec-install() {
     fi
 
     # Make sure that Opkg is configured to fetch the chosen Toltec branch
-    sed -i '/^src\/gz\s\+toltec[a-z-]*\s\+/d' "$opkg_conf_path"
+    sed -i '/^src\/gz\s\+toltec[a-z0-9-]*\s\+/d' "$opkg_conf_path"
     echo "src/gz toltec-rmall https://toltec-dev.org/$toltec_branch/rmall" >> "$opkg_conf_path"
     echo "src/gz toltec-$device_arch https://toltec-dev.org/$toltec_branch/$device_arch" >> "$opkg_conf_path"
 
@@ -267,7 +267,7 @@ toltec-install() {
     local additional_packages=()
 
     [[ ! -d /opt/etc/ssl/certs ]] && additional_packages+=(ca-certificates)
-    [[ ! -f /opt/bin/wget ]] && additional_packages+=(wget)
+    [[ ! -f /opt/bin/wget ]] && additional_packages+=(wget-ssl)
 
     if [[ ${#additional_packages[@]} -gt 0 ]]; then
         /opt/bin/opkg install "${additional_packages[@]}"
