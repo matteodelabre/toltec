@@ -257,7 +257,7 @@ toltec-install() {
     fi
 
     # Make sure that Opkg is configured to fetch the chosen Toltec branch
-    sed -i '/^src\/gz\s\+toltec[a-z-]*\s\+/d' "$opkg_conf_path"
+    sed -i '/^src\/gz\s\+toltec[a-z0-9-]*\s\+/d' "$opkg_conf_path"
     echo "src/gz toltec-rmall https://toltec-dev.org/$toltec_branch/rmall" >> "$opkg_conf_path"
     echo "src/gz toltec-$device_arch https://toltec-dev.org/$toltec_branch/$device_arch" >> "$opkg_conf_path"
 
